@@ -3,177 +3,937 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quiz – Concurso Día de la Primavera 2026</title>
-  <meta name="description" content="Cuestionario de Cultura General – Concurso Día de la Primavera 2026. 50 preguntas, tiempo límite, orden aleatorio." />
-  <meta property="og:title" content="Quiz – Concurso Día de la Primavera 2026" />
-  <meta property="og:description" content="¡Pon a prueba tu cultura general con 50 preguntas!" />
+  <title>🌸 Concurso Día de la Primavera 2026 – Torneo Aura</title>
+  <meta name="description" content="Cuestionario de Cultura General con 50 preguntas, tiempo límite y opciones múltiples. ¡Participa en el Concurso Día de la Primavera 2026!" />
+  <meta property="og:title" content="🌸 Concurso Día de la Primavera 2026 – Torneo Aura" />
+  <meta property="og:description" content="50 Preguntas de Cultura General con tiempo límite y ranking final." />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="styles.css" />
-  <!-- Favicon emoji -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+/* ============================================================
+   CONCURSO DÍA DE LA PRIMAVERA 2026 - INLINE STYLES (FAILSAFE)
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg-dark: #090314;
+  --bg-gradient: radial-gradient(circle at 10% 20%, rgba(138, 43, 226, 0.25) 0%, transparent 40%),
+                 radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.2) 0%, transparent 40%),
+                 radial-gradient(circle at 50% 50%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+                 linear-gradient(135deg, #070114 0%, #120324 50%, #031024 100%);
+  --card-bg: rgba(22, 11, 40, 0.85);
+  --card-border: rgba(255, 255, 255, 0.14);
+  --card-glow: 0 20px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px -10px rgba(168, 85, 247, 0.3);
+  --accent-purple: #a855f7;
+  --accent-pink: #ec4899;
+  --accent-cyan: #06b6d4;
+  --accent-spring: #10b981;
+  --accent-gold: #facc15;
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.72);
+  --text-sub: rgba(255, 255, 255, 0.5);
+  --correct-bg: rgba(16, 185, 129, 0.22);
+  --correct-border: #10b981;
+  --correct-glow: 0 0 25px rgba(16, 185, 129, 0.5);
+  --wrong-bg: rgba(239, 68, 68, 0.22);
+  --wrong-border: #ef4444;
+  --wrong-glow: 0 0 25px rgba(239, 68, 68, 0.5);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100vh;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-dark);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-main);
+  overflow-x: hidden;
+  position: relative;
+}
+
+.ambient-glow {
+  position: fixed;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+  animation: floatAmbient 14s ease-in-out infinite alternate;
+}
+.ambient-1 { top: -120px; left: -100px; background: var(--accent-purple); }
+.ambient-2 { bottom: -150px; right: -100px; background: var(--accent-pink); animation-duration: 18s; animation-delay: -5s; }
+.ambient-3 { top: 45%; right: 15%; background: var(--accent-spring); opacity: 0.2; animation-duration: 22s; animation-delay: -9s; }
+
+@keyframes floatAmbient {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -30px) scale(1.1); }
+  100% { transform: translate(-30px, 30px) scale(0.95); }
+}
+
+.main-wrapper {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.glass-panel {
+  width: 100%;
+  max-width: 820px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-glow);
+  overflow: hidden;
+  animation: panelEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes panelEntrance {
+  from { opacity: 0; transform: translateY(24px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.hidden { display: none !important; }
+
+/* Top toolbar */
+.top-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  background: linear-gradient(135deg, #d8b4fe, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-main);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
+}
+
+/* Intro Screen */
+.intro-content {
+  padding: 48px 36px;
+  text-align: center;
+}
+
+.hero-flower {
+  font-size: 4rem;
+  display: inline-block;
+  margin-bottom: 16px;
+  animation: flowerSway 3s ease-in-out infinite alternate;
+}
+
+@keyframes flowerSway {
+  0% { transform: rotate(-8deg) scale(1); }
+  100% { transform: rotate(8deg) scale(1.08); }
+}
+
+.intro-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #ffffff 20%, #f472b6 60%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.intro-tagline {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  max-width: 580px;
+  margin: 0 auto 36px;
+  line-height: 1.6;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.feature-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 20px 14px;
+  transition: all 0.3s ease;
+}
+.feature-box:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-3px);
+}
+
+.feature-box .feat-val {
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: block;
+  margin-bottom: 4px;
+}
+.feature-box .feat-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.rules-card {
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  text-align: left;
+  margin-bottom: 36px;
+}
+
+.rules-card h4 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #d8b4fe;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rules-card ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rules-card li {
+  font-size: 0.94rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.45;
+}
+
+.rules-card li::before {
+  content: '✨';
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cta-button {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f43f5e 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  padding: 20px 48px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(236, 72, 153, 0.4), 0 0 20px rgba(168, 85, 247, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.cta-button:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 16px 40px rgba(236, 72, 153, 0.6), 0 0 30px rgba(168, 85, 247, 0.6);
+}
+.cta-button:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+/* Quiz Screen */
+.quiz-top-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 28px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.quiz-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f472b6;
+  background: rgba(244, 114, 182, 0.12);
+  border: 1px solid rgba(244, 114, 182, 0.3);
+  padding: 6px 14px;
+  border-radius: 30px;
+}
+
+.score-badge {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-gold);
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  padding: 6px 16px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quiz-progress-section {
+  padding: 18px 28px 8px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.progress-track-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #a855f7, #ec4899, #10b981);
+  border-radius: 20px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.7);
+}
+
+.question-presentation {
+  padding: 24px 28px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.circular-timer-box {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin-bottom: 20px;
+}
+
+.circular-timer-box svg {
+  width: 90px;
+  height: 90px;
+  transform: rotate(-90deg);
+}
+
+.timer-bg-circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 6;
+}
+
+.timer-fg-circle {
+  fill: none;
+  stroke: var(--accent-cyan);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 226.19;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.8s linear, stroke 0.4s ease;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.circular-timer-box.timer-warning .timer-fg-circle {
+  stroke: var(--accent-gold);
+}
+
+.circular-timer-box.timer-danger .timer-fg-circle {
+  stroke: #ef4444;
+  animation: timerThrob 0.6s infinite alternate;
+}
+
+@keyframes timerThrob {
+  from { filter: drop-shadow(0 0 6px #ef4444); }
+  to { filter: drop-shadow(0 0 18px #ef4444); }
+}
+
+.timer-number-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-count {
+  font-size: 1.8rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.timer-unit {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-sub);
+  margin-top: 2px;
+}
+
+.question-index-tag {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #e9d5ff;
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+}
+
+.question-text-title {
+  font-size: clamp(1.15rem, 3vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.45;
+  color: #ffffff;
+  max-width: 680px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 12px 28px 20px;
+}
+
+@media (max-width: 640px) {
+  .options-grid { grid-template-columns: 1fr; }
+}
+
+.option-card-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.option-card-btn:hover:not(:disabled) {
+  background: rgba(168, 85, 247, 0.18);
+  border-color: rgba(168, 85, 247, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.25);
+}
+
+.option-card-btn:disabled { cursor: default; }
+
+.option-badge-key {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.09);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.option-card-btn:hover:not(:disabled) .option-badge-key {
+  background: var(--accent-purple);
+  color: #fff;
+}
+
+.option-label-text {
+  flex: 1;
+  line-height: 1.35;
+}
+
+.option-card-btn.state-correct {
+  background: var(--correct-bg) !important;
+  border-color: var(--correct-border) !important;
+  box-shadow: var(--correct-glow) !important;
+}
+.option-card-btn.state-correct .option-badge-key {
+  background: var(--correct-border);
+  color: #000;
+}
+
+.option-card-btn.state-wrong {
+  background: var(--wrong-bg) !important;
+  border-color: var(--wrong-border) !important;
+  box-shadow: var(--wrong-glow) !important;
+}
+.option-card-btn.state-wrong .option-badge-key {
+  background: var(--wrong-border);
+  color: #fff;
+}
+
+.feedback-banner {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 8px 24px 20px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all 0.3s ease;
+}
+.feedback-banner.show-feedback {
+  opacity: 1;
+  transform: translateY(0);
+}
+.feedback-banner.feedback-correct { color: #34d399; }
+.feedback-banner.feedback-wrong { color: #f87171; }
+.feedback-banner.feedback-timeout { color: var(--accent-gold); }
+
+/* Results */
+.results-container {
+  padding: 48px 36px;
+  text-align: center;
+}
+
+.results-medal-display {
+  font-size: 5rem;
+  margin-bottom: 12px;
+  display: inline-block;
+  animation: medalEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes medalEntrance {
+  0% { transform: scale(0.2) rotate(-30deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.results-title {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 900;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #ffffff, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.results-rank-category {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--accent-gold);
+  margin-bottom: 8px;
+}
+
+.results-time-summary {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+.score-big-ring {
+  width: 170px;
+  height: 170px;
+  margin: 0 auto 32px;
+  border-radius: 50%;
+  padding: 5px;
+  background: conic-gradient(from 0deg, #a855f7, #ec4899, #facc15, #10b981, #a855f7);
+  box-shadow: 0 0 35px rgba(236, 72, 153, 0.4);
+}
+
+.score-big-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #110627;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-count-num {
+  font-size: 2.8rem;
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, #ffffff, var(--accent-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.score-count-total {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.results-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.result-card-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 18px 12px;
+}
+
+.stat-metric-num {
+  font-size: 2.2rem;
+  font-weight: 900;
+  display: block;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-metric-title {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.stat-metric-num.color-correct { color: #10b981; }
+.stat-metric-num.color-wrong { color: #ef4444; }
+.stat-metric-num.color-time { color: var(--accent-gold); }
+
+.results-actions-group {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-main);
+  border-radius: 50px;
+  padding: 16px 32px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+#confetti-canvas-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99999;
+  overflow: hidden;
+}
+
+.confetti-particle {
+  position: absolute;
+  border-radius: 3px;
+  animation: confettiFallDown linear forwards;
+}
+
+@keyframes confettiFallDown {
+  0% { opacity: 1; transform: translateY(-30px) rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: translateY(105vh) rotate(720deg) scale(0.4); }
+}
+
+.toast-notice {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(50px);
+  background: rgba(16, 185, 129, 0.95);
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-weight: 700;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 10000;
+}
+.toast-notice.show-toast {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+@media (max-width: 580px) {
+  .intro-content, .results-container { padding: 32px 20px; }
+  .question-presentation { padding: 18px 18px 8px; }
+  .options-grid { padding: 8px 18px 16px; gap: 10px; }
+  .cta-button { width: 100%; justify-content: center; padding: 16px 24px; font-size: 1.1rem; }
+  .results-stat-cards { gap: 8px; }
+  .stat-metric-num { font-size: 1.7rem; }
+}
+  </style>
 </head>
 <body>
 
-  <!-- ─── FLOATING ORBS ──────────────────────── -->
-  <div class="orb orb-1" aria-hidden="true"></div>
-  <div class="orb orb-2" aria-hidden="true"></div>
-  <div class="orb orb-3" aria-hidden="true"></div>
+  <!-- Ambient Glowing Lights -->
+  <div class="ambient-glow ambient-1" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-2" aria-hidden="true"></div>
+  <div class="ambient-glow ambient-3" aria-hidden="true"></div>
 
-  <!-- ─── CONFETTI CONTAINER ────────────────── -->
-  <div id="confetti-container" aria-hidden="true"></div>
+  <!-- Confetti Canvas -->
+  <div id="confetti-canvas-container" aria-hidden="true"></div>
 
-  <main class="app-wrapper">
+  <!-- Toast Notification -->
+  <div id="toast-notification" class="toast-notice" role="status"></div>
 
-    <!-- ====================================================
-         INTRO SCREEN
-         ==================================================== -->
-    <section id="intro-screen" class="card" role="main">
-      <div class="intro-badge">🌸 &nbsp;Torneo Aura · 2026</div>
-      <span class="intro-icon" aria-hidden="true">🧠</span>
+  <div class="main-wrapper">
 
-      <h1 class="intro-title">Concurso<br/>Día de la Primavera</h1>
-      <p class="intro-subtitle">¿Cuánto sabes de cultura general? ¡Demuéstralo!</p>
+    <!-- Card Wrapper -->
+    <div class="glass-panel">
 
-      <div class="intro-stats">
-        <div class="intro-stat">
-          <div class="stat-value">50</div>
-          <div class="stat-label">Preguntas</div>
+      <!-- Top Toolbar (Always Present) -->
+      <div class="top-toolbar">
+        <div class="brand-badge">
+          🌸 Torneo Aura · Primavera 2026
         </div>
-        <div class="intro-stat">
-          <div class="stat-value">30s</div>
-          <div class="stat-label">Por pregunta</div>
-        </div>
-        <div class="intro-stat">
-          <div class="stat-value">4</div>
-          <div class="stat-label">Opciones</div>
-        </div>
-        <div class="intro-stat">
-          <div class="stat-value">🎲</div>
-          <div class="stat-label">Orden aleatorio</div>
+        <div class="toolbar-controls">
+          <button id="sound-toggle-btn" class="icon-btn" title="Silenciar / Activar sonido" aria-label="Control de sonido">🔊</button>
         </div>
       </div>
 
-      <div class="intro-rules">
-        <h3>📋 Cómo jugar</h3>
-        <ul>
-          <li>Tienes <strong>30 segundos</strong> para responder cada pregunta.</li>
-          <li>Selecciona una de las <strong>4 opciones</strong> de respuesta.</li>
-          <li>Las preguntas aparecen en <strong>orden aleatorio</strong>.</li>
-          <li>Si el tiempo se agota, la pregunta se marca como incorrecta.</li>
-          <li>Al final verás tu puntuación y estadísticas.</li>
-        </ul>
-      </div>
+      <!-- ========================================================
+           SCREEN 1: INTRO VIEW
+           ======================================================== -->
+      <section id="intro-view-section" class="intro-content">
+        <span class="hero-flower" aria-hidden="true">🌸</span>
+        <h1 class="intro-title">Concurso<br/>Día de la Primavera</h1>
+        <p class="intro-tagline">Cuestionario oficial de Cultura General. ¡Demuestra tus conocimientos y compite por el podio!</p>
 
-      <button id="start-btn" class="btn-primary">
-        <span>🚀</span> ¡Comenzar Quiz!
-      </button>
-    </section>
-
-    <!-- ====================================================
-         QUIZ SCREEN
-         ==================================================== -->
-    <section id="quiz-screen" class="card hidden">
-
-      <!-- Header -->
-      <header class="quiz-header">
-        <div class="quiz-brand">
-          <span class="quiz-brand-title">🌸 Día de la Primavera 2026</span>
-          <span class="quiz-brand-sub">Cuestionario de Cultura General</span>
-        </div>
-        <div id="score-display" class="score-chip" aria-live="polite">⭐ 0</div>
-      </header>
-
-      <!-- Progress -->
-      <div class="progress-container">
-        <div class="progress-info">
-          <span id="progress-text">Pregunta 1 de 50</span>
-          <span id="progress-pct">0%</span>
-        </div>
-        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0">
-          <div id="progress-bar" class="progress-fill" style="width:0%"></div>
-        </div>
-      </div>
-
-      <!-- Question area -->
-      <div class="question-area">
-        <!-- Timer -->
-        <div id="timer-container" aria-label="Tiempo restante">
-          <svg viewBox="0 0 80 80" aria-hidden="true">
-            <circle class="timer-track" cx="40" cy="40" r="36"/>
-            <circle id="timer-ring" cx="40" cy="40" r="36"
-              style="stroke-dasharray:226.19; stroke-dashoffset:0;"/>
-          </svg>
-          <div class="timer-center">
-            <span id="timer-value">30</span>
-            <span class="timer-label">seg</span>
+        <!-- Feature Boxes -->
+        <div class="features-grid">
+          <div class="feature-box">
+            <span class="feat-val">50</span>
+            <span class="feat-label">Preguntas</span>
+          </div>
+          <div class="feature-box">
+            <span class="feat-val">30s</span>
+            <span class="feat-label">Por Pregunta</span>
+          </div>
+          <div class="feature-box">
+            <span class="feat-val">4</span>
+            <span class="feat-label">Opciones</span>
+          </div>
+          <div class="feature-box">
+            <span class="feat-val">🎲</span>
+            <span class="feat-label">Orden Aleatorio</span>
           </div>
         </div>
 
-        <!-- Question number + text -->
-        <div class="question-meta">
-          <span id="question-number" class="question-num-badge">#1</span>
+        <!-- Rules Card -->
+        <div class="rules-card">
+          <h4>📋 Reglas del Torneo</h4>
+          <ul>
+            <li>Tienes <strong>30 segundos</strong> para responder cada pregunta.</li>
+            <li>Elige una de las <strong>4 opciones</strong> disponibles (o usa las teclas 1, 2, 3, 4 o A, B, C, D).</li>
+            <li>Las preguntas y opciones se ordenan de forma <strong>totalmente aleatoria</strong> en cada partida.</li>
+            <li>Si el tiempo llega a cero, la pregunta se registra como <strong>no contestada</strong>.</li>
+            <li>Al finalizar, recibirás tu <strong>medalla, ranking y estadísticas completas</strong>.</li>
+          </ul>
         </div>
-        <p id="question-text" aria-live="polite"></p>
-      </div>
 
-      <!-- Options -->
-      <div id="options-container" class="options-container" role="list"></div>
-
-      <!-- Feedback -->
-      <p id="feedback-message" class="feedback-message" aria-live="assertive" role="alert"></p>
-
-    </section>
-
-    <!-- ====================================================
-         RESULTS SCREEN
-         ==================================================== -->
-    <section id="results-screen" class="card hidden">
-
-      <div class="results-header">
-        <span id="result-medal" class="result-medal" aria-label="Medalla"></span>
-        <h2 class="result-title">¡Quiz Completado!</h2>
-        <p id="result-category" class="result-category"></p>
-        <p id="result-time" class="result-time"></p>
-      </div>
-
-      <!-- Big score -->
-      <div class="result-score-big">
-        <div class="score-circle">
-          <div class="score-circle-inner">
-            <span id="result-score" class="score-number"></span>
-            <span class="score-total">de 50</span>
-          </div>
-        </div>
-        <span id="result-percentage" class="score-percentage"></span>
-      </div>
-
-      <!-- Stats -->
-      <div class="result-stats">
-        <div class="result-stat-item stat-correct">
-          <span id="stat-correct" class="stat-num">0</span>
-          <span class="stat-lbl">✅ Correctas</span>
-        </div>
-        <div class="result-stat-item stat-wrong">
-          <span id="stat-wrong" class="stat-num">0</span>
-          <span class="stat-lbl">❌ Incorrectas</span>
-        </div>
-        <div class="result-stat-item stat-skipped">
-          <span id="stat-skipped" class="stat-num">0</span>
-          <span class="stat-lbl">⏰ Sin tiempo</span>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="results-actions">
-        <button id="restart-btn" class="btn-primary">
-          <span>🔄</span> Jugar de nuevo
+        <!-- Start CTA -->
+        <button id="start-quiz-cta-btn" class="cta-button">
+          <span>🚀</span> ¡Comenzar Concurso Ahora!
         </button>
-      </div>
+      </section>
 
-    </section>
+      <!-- ========================================================
+           SCREEN 2: QUIZ ACTIVE VIEW
+           ======================================================== -->
+      <section id="quiz-view-section" class="hidden">
+        
+        <!-- Score & Category Bar -->
+        <div class="quiz-top-info">
+          <div class="quiz-badge">📚 Cultura General</div>
+          <div id="current-score-text" class="score-badge">⭐ 0</div>
+        </div>
 
-  </main>
+        <!-- Progress Bar -->
+        <div class="quiz-progress-section">
+          <div class="progress-header">
+            <span id="progress-counter-text">Pregunta 1 de 50</span>
+            <span id="progress-percent-val">0%</span>
+          </div>
+          <div class="progress-track-bar">
+            <div id="quiz-progress-fill" class="progress-fill-bar"></div>
+          </div>
+        </div>
 
+        <!-- Presentation + Timer -->
+        <div class="question-presentation">
+          
+          <!-- Circular Countdown Timer -->
+          <div id="timer-container-box" class="circular-timer-box">
+            <svg viewBox="0 0 80 80">
+              <circle class="timer-bg-circle" cx="40" cy="40" r="36" />
+              <circle id="timer-svg-progress" class="timer-fg-circle" cx="40" cy="40" r="36" />
+            </svg>
+            <div class="timer-number-wrapper">
+              <span id="timer-seconds-count" class="timer-count">30</span>
+              <span class="timer-unit">seg</span>
+            </div>
+          </div>
+
+          <!-- Question Tag -->
+          <span id="question-index-tag" class="question-index-tag">Pregunta #1</span>
+
+          <!-- Question Text -->
+          <h2 id="active-question-text" class="question-text-title">Cargando pregunta...</h2>
+        </div>
+
+        <!-- Options Container -->
+        <div id="answers-options-grid" class="options-grid"></div>
+
+        <!-- Feedback Alert Banner -->
+        <div id="feedback-alert-banner" class="feedback-banner" aria-live="polite"></div>
+
+      </section>
+
+      <!-- ========================================================
+           SCREEN 3: RESULTS VIEW
+           ======================================================== -->
+      <section id="results-view-section" class="results-container hidden">
+
+        <span id="final-medal-icon" class="results-medal-display">🏆</span>
+        <h2 class="results-title">¡Torneo Finalizado!</h2>
+        <div id="final-rank-name" class="results-rank-category">¡Gran Maestro de la Cultura!</div>
+        <div id="final-time-text" class="results-time-summary">⏱️ Tiempo total empleado: 8m 42s</div>
+
+        <!-- Ring Score Indicator -->
+        <div class="score-big-ring">
+          <div class="score-big-inner">
+            <span id="final-score-counter" class="score-count-num">0</span>
+            <span id="final-max-score" class="score-count-total">de 50 (0%)</span>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="results-stat-cards">
+          <div class="result-card-stat">
+            <span id="stat-metric-correct" class="stat-metric-num color-correct">0</span>
+            <span class="stat-metric-title">Correctas</span>
+          </div>
+          <div class="result-card-stat">
+            <span id="stat-metric-wrong" class="stat-metric-num color-wrong">0</span>
+            <span class="stat-metric-title">Incorrectas</span>
+          </div>
+          <div class="result-card-stat">
+            <span id="stat-metric-timeout" class="stat-metric-num color-time">0</span>
+            <span class="stat-metric-title">Sin tiempo</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="results-actions-group">
+          <button id="restart-quiz-btn" class="cta-button">
+            <span>🔄</span> Jugar de Nuevo
+          </button>
+          <button id="share-results-btn" class="secondary-button">
+            <span>📋</span> Copiar Resultado
+          </button>
+        </div>
+
+      </section>
+
+    </div>
+
+  </div>
+
+  <!-- Quiz Logic Script -->
   <script src="quiz.js"></script>
 </body>
 </html>

@@ -1,8 +1,9 @@
 // ============================================================
-// CONCURSO DÍA DE LA PRIMAVERA 2026 – Quiz de Cultura General
+// CONCURSO DÍA DE LA PRIMAVERA 2026 – TORNEO AURA
+// 50 Preguntas de Cultura General con Temporizador y Opciones
 // ============================================================
 
-const QUESTIONS_DATA = [
+const RAW_QUESTIONS = [
   {
     id: 1,
     question: "¿Cuál es el río más largo del mundo?",
@@ -305,336 +306,472 @@ const QUESTIONS_DATA = [
   }
 ];
 
-// ============================================================
-// CONFIG
-// ============================================================
-const TIME_PER_QUESTION = 30; // segundos por pregunta
-const TOTAL_QUESTIONS = QUESTIONS_DATA.length;
+// Configuration
+const SECONDS_PER_QUESTION = 30;
+const TOTAL_QUESTIONS_COUNT = RAW_QUESTIONS.length;
 
-// ============================================================
-// STATE
-// ============================================================
-let state = {
+// Game State
+let gameState = {
   questions: [],
   currentIndex: 0,
   score: 0,
-  timer: null,
-  timeLeft: TIME_PER_QUESTION,
-  answered: false,
-  answers: [], // {questionId, correct, selected}
-  startTime: null,
+  timerInterval: null,
+  secondsLeft: SECONDS_PER_QUESTION,
+  hasAnswered: false,
+  answersRecord: [],
+  quizStartTime: null,
+  soundEnabled: true
 };
 
-// ============================================================
-// UTILITY
-// ============================================================
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+// Web Audio API Synthesizer (Zero Dependencies)
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
   }
-  return a;
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
 }
 
-function buildOptions(q) {
-  return shuffle([q.correct, ...q.wrong]);
+function playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.1) {
+  if (!gameState.soundEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {
+    // Audio context may fail if blocked by browser policy
+  }
 }
 
-function prepareQuestions() {
-  return shuffle(QUESTIONS_DATA).map(q => ({
+function playCorrectSound() {
+  if (!gameState.soundEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.08, now + i * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 0.25);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now + i * 0.08);
+      osc.stop(now + i * 0.08 + 0.25);
+    });
+  } catch (e) {}
+}
+
+function playWrongSound() {
+  if (!gameState.soundEnabled) return;
+  try {
+    initAudio();
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.35);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.35);
+  } catch (e) {}
+}
+
+function playTimerTick() {
+  playTone(880, 'sine', 0.04, 0.02);
+}
+
+// Utility: Fisher-Yates Shuffle
+function shuffleArray(array) {
+  const cloned = [...array];
+  for (let i = cloned.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
+  }
+  return cloned;
+}
+
+// Prepare Questions with Shuffled Options
+function prepareQuizData() {
+  return shuffleArray(RAW_QUESTIONS).map(q => ({
     ...q,
-    options: buildOptions(q),
+    shuffledOptions: shuffleArray([q.correct, ...q.wrong])
   }));
 }
 
-// ============================================================
-// TIMER
-// ============================================================
-function startTimer() {
-  clearInterval(state.timer);
-  state.timeLeft = TIME_PER_QUESTION;
-  updateTimerUI();
+// Timer Functions
+function startCountdownTimer() {
+  clearInterval(gameState.timerInterval);
+  gameState.secondsLeft = SECONDS_PER_QUESTION;
+  updateTimerGraphics();
 
-  state.timer = setInterval(() => {
-    state.timeLeft--;
-    updateTimerUI();
+  gameState.timerInterval = setInterval(() => {
+    gameState.secondsLeft--;
+    updateTimerGraphics();
 
-    if (state.timeLeft <= 0) {
-      clearInterval(state.timer);
-      if (!state.answered) {
-        timeUp();
+    if (gameState.secondsLeft <= 5 && gameState.secondsLeft > 0) {
+      playTimerTick();
+    }
+
+    if (gameState.secondsLeft <= 0) {
+      clearInterval(gameState.timerInterval);
+      if (!gameState.hasAnswered) {
+        handleTimeExpiration();
       }
     }
   }, 1000);
 }
 
-function updateTimerUI() {
-  const timerEl = document.getElementById('timer-value');
-  const timerRing = document.getElementById('timer-ring');
-  const timerContainer = document.getElementById('timer-container');
+function updateTimerGraphics() {
+  const numberEl = document.getElementById('timer-seconds-count');
+  const ringEl = document.getElementById('timer-svg-progress');
+  const boxEl = document.getElementById('timer-container-box');
 
-  if (!timerEl) return;
-  timerEl.textContent = state.timeLeft;
+  if (numberEl) numberEl.textContent = gameState.secondsLeft;
 
-  const pct = state.timeLeft / TIME_PER_QUESTION;
-  const circumference = 2 * Math.PI * 36;
+  const pct = gameState.secondsLeft / SECONDS_PER_QUESTION;
+  const circumference = 2 * Math.PI * 36; // ~226.19
   const offset = circumference * (1 - pct);
-  timerRing.style.strokeDashoffset = offset;
 
-  // Color change
-  timerContainer.classList.remove('warning', 'danger');
-  if (pct <= 0.33) timerContainer.classList.add('danger');
-  else if (pct <= 0.6) timerContainer.classList.add('warning');
+  if (ringEl) {
+    ringEl.style.strokeDashoffset = offset;
+  }
+
+  if (boxEl) {
+    boxEl.classList.remove('timer-warning', 'timer-danger');
+    if (gameState.secondsLeft <= 7) {
+      boxEl.classList.add('timer-danger');
+    } else if (gameState.secondsLeft <= 15) {
+      boxEl.classList.add('timer-warning');
+    }
+  }
 }
 
-function timeUp() {
-  state.answered = true;
-  state.answers.push({ questionId: state.questions[state.currentIndex].id, correct: false, selected: null });
-  showCorrectAnswer();
-  showTimeUpFeedback();
-  scheduleNext();
-}
+function handleTimeExpiration() {
+  gameState.hasAnswered = true;
+  playWrongSound();
 
-// ============================================================
-// RENDER
-// ============================================================
-function renderQuestion() {
-  const q = state.questions[state.currentIndex];
-  state.answered = false;
-
-  // Progress
-  const progressEl = document.getElementById('progress-bar');
-  const progressText = document.getElementById('progress-text');
-  const pct = ((state.currentIndex) / TOTAL_QUESTIONS) * 100;
-  progressEl.style.width = pct + '%';
-  const pctDisplay = Math.round(((state.currentIndex + 1) / TOTAL_QUESTIONS) * 100);
-  const pctEl = document.getElementById('progress-pct');
-  if (pctEl) pctEl.textContent = pctDisplay + '%';
-  const progressBar = document.getElementById('progress-bar');
-  if (progressBar) progressBar.setAttribute('aria-valuenow', state.currentIndex + 1);
-  progressText.textContent = `Pregunta ${state.currentIndex + 1} de ${TOTAL_QUESTIONS}`;
-
-  // Score
-  document.getElementById('score-display').textContent = `⭐ ${state.score}`;
-
-  // Question text with slide-in animation
-  const questionEl = document.getElementById('question-text');
-  questionEl.classList.remove('slide-in');
-  void questionEl.offsetWidth;
-  questionEl.textContent = q.question;
-  questionEl.classList.add('slide-in');
-
-  // Question number badge
-  document.getElementById('question-number').textContent = `#${state.currentIndex + 1}`;
-
-  // Options
-  const optionsContainer = document.getElementById('options-container');
-  optionsContainer.innerHTML = '';
-
-  q.options.forEach((opt, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.dataset.value = opt;
-    btn.innerHTML = `<span class="option-letter">${String.fromCharCode(65 + i)}</span><span class="option-text">${opt}</span>`;
-    btn.style.animationDelay = `${i * 0.08}s`;
-    btn.addEventListener('click', () => selectAnswer(btn, opt, q.correct));
-    optionsContainer.appendChild(btn);
+  const currentQ = gameState.questions[gameState.currentIndex];
+  gameState.answersRecord.push({
+    questionId: currentQ.id,
+    isCorrect: false,
+    selected: null,
+    reason: 'timeout'
   });
 
-  // Hide feedback
-  const feedbackEl = document.getElementById('feedback-message');
-  feedbackEl.className = 'feedback-message';
-  feedbackEl.textContent = '';
-
-  startTimer();
+  highlightAnswers(currentQ.correct, null);
+  setFeedbackBanner('⏰ ¡Tiempo agotado!', 'feedback-timeout');
+  advanceToNextQuestionWithDelay();
 }
 
-function selectAnswer(btn, selected, correct) {
-  if (state.answered) return;
-  state.answered = true;
-  clearInterval(state.timer);
+// Question Rendering
+function displayCurrentQuestion() {
+  const q = gameState.questions[gameState.currentIndex];
+  gameState.hasAnswered = false;
 
-  const isCorrect = selected === correct;
+  // Update progress
+  const progressFill = document.getElementById('quiz-progress-fill');
+  const progressText = document.getElementById('progress-counter-text');
+  const progressPct = document.getElementById('progress-percent-val');
+  const scoreBadge = document.getElementById('current-score-text');
+
+  const currentIndexNumber = gameState.currentIndex + 1;
+  const pctValue = Math.round(((currentIndexNumber - 1) / TOTAL_QUESTIONS_COUNT) * 100);
+
+  if (progressFill) progressFill.style.width = pctValue + '%';
+  if (progressText) progressText.textContent = `Pregunta ${currentIndexNumber} de ${TOTAL_QUESTIONS_COUNT}`;
+  if (progressPct) progressPct.textContent = `${pctValue}%`;
+  if (scoreBadge) scoreBadge.textContent = `⭐ ${gameState.score}`;
+
+  // Question Info
+  const qIndexTag = document.getElementById('question-index-tag');
+  const qText = document.getElementById('active-question-text');
+
+  if (qIndexTag) qIndexTag.textContent = `Pregunta #${currentIndexNumber}`;
+  if (qText) {
+    qText.textContent = q.question;
+    qText.style.animation = 'none';
+    void qText.offsetWidth;
+    qText.style.animation = 'fadeInQuestion 0.35s ease';
+  }
+
+  // Render Options
+  const container = document.getElementById('answers-options-grid');
+  if (container) {
+    container.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D'];
+
+    q.shuffledOptions.forEach((optionText, idx) => {
+      const button = document.createElement('button');
+      button.className = 'option-card-btn';
+      button.dataset.answer = optionText;
+      button.innerHTML = `
+        <span class="option-badge-key">${letters[idx]}</span>
+        <span class="option-label-text">${optionText}</span>
+      `;
+      button.addEventListener('click', () => handleOptionSelected(button, optionText, q.correct));
+      container.appendChild(button);
+    });
+  }
+
+  // Clear Feedback
+  clearFeedbackBanner();
+
+  // Start timer
+  startCountdownTimer();
+}
+
+function handleOptionSelected(buttonEl, chosenAnswer, correctAnswer) {
+  if (gameState.hasAnswered) return;
+  gameState.hasAnswered = true;
+  clearInterval(gameState.timerInterval);
+
+  const isCorrect = chosenAnswer === correctAnswer;
 
   if (isCorrect) {
-    state.score++;
-    btn.classList.add('correct');
-    showFeedback('¡Correcto! 🎉', 'correct');
-    triggerConfetti();
+    gameState.score++;
+    playCorrectSound();
+    triggerConfettiParticles();
+    setFeedbackBanner('🎉 ¡Respuesta Correcta! ¡Excelente!', 'feedback-correct');
   } else {
-    btn.classList.add('wrong');
-    showCorrectAnswer();
-    showFeedback('¡Incorrecto! 😔', 'wrong');
+    playWrongSound();
+    setFeedbackBanner('❌ ¡Incorrecto! Sigue adelante', 'feedback-wrong');
   }
 
-  state.answers.push({ questionId: state.questions[state.currentIndex].id, correct: isCorrect, selected });
-  document.getElementById('score-display').textContent = `⭐ ${state.score}`;
+  gameState.answersRecord.push({
+    questionId: gameState.questions[gameState.currentIndex].id,
+    isCorrect,
+    selected: chosenAnswer
+  });
 
-  scheduleNext();
+  const scoreBadge = document.getElementById('current-score-text');
+  if (scoreBadge) scoreBadge.textContent = `⭐ ${gameState.score}`;
+
+  highlightAnswers(correctAnswer, chosenAnswer);
+  advanceToNextQuestionWithDelay();
 }
 
-function showCorrectAnswer() {
-  const q = state.questions[state.currentIndex];
-  const btns = document.querySelectorAll('.option-btn');
-  btns.forEach(btn => {
-    if (btn.dataset.value === q.correct) {
-      btn.classList.add('correct');
-    }
+function highlightAnswers(correctAnswer, chosenAnswer) {
+  const buttons = document.querySelectorAll('.option-card-btn');
+  buttons.forEach(btn => {
     btn.disabled = true;
+    const value = btn.dataset.answer;
+    if (value === correctAnswer) {
+      btn.classList.add('state-correct');
+    } else if (value === chosenAnswer) {
+      btn.classList.add('state-wrong');
+    }
   });
 }
 
-function showFeedback(msg, type) {
-  const el = document.getElementById('feedback-message');
-  el.textContent = msg;
-  el.className = `feedback-message show ${type}`;
+function setFeedbackBanner(message, cssClass) {
+  const banner = document.getElementById('feedback-alert-banner');
+  if (!banner) return;
+  banner.textContent = message;
+  banner.className = `feedback-banner show-feedback ${cssClass}`;
 }
 
-function showTimeUpFeedback() {
-  showFeedback('¡Tiempo agotado! ⏰', 'timeout');
+function clearFeedbackBanner() {
+  const banner = document.getElementById('feedback-alert-banner');
+  if (!banner) return;
+  banner.textContent = '';
+  banner.className = 'feedback-banner';
 }
 
-function scheduleNext() {
+function advanceToNextQuestionWithDelay() {
   setTimeout(() => {
-    state.currentIndex++;
-    if (state.currentIndex >= TOTAL_QUESTIONS) {
-      showResults();
+    gameState.currentIndex++;
+    if (gameState.currentIndex >= TOTAL_QUESTIONS_COUNT) {
+      renderResultsScreen();
     } else {
-      renderQuestion();
+      displayCurrentQuestion();
     }
-  }, 1800);
+  }, 1600);
 }
 
-// ============================================================
-// CONFETTI
-// ============================================================
-function triggerConfetti() {
-  const container = document.getElementById('confetti-container');
-  const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#c77dff', '#ff9a3c'];
-  for (let i = 0; i < 30; i++) {
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.left = Math.random() * 100 + '%';
-    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-    piece.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
-    piece.style.animationDelay = Math.random() * 0.3 + 's';
-    piece.style.width = piece.style.height = (Math.random() * 10 + 6) + 'px';
-    container.appendChild(piece);
-    setTimeout(() => piece.remove(), 1500);
+// Confetti Effect
+function triggerConfettiParticles() {
+  const container = document.getElementById('confetti-canvas-container');
+  if (!container) return;
+  const colors = ['#f472b6', '#a855f7', '#38bdf8', '#34d399', '#facc15', '#fb7185'];
+
+  for (let i = 0; i < 35; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti-particle';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.top = '-10px';
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.width = (Math.random() * 8 + 6) + 'px';
+    confetti.style.height = (Math.random() * 12 + 8) + 'px';
+    confetti.style.animationDuration = (Math.random() * 1.2 + 0.8) + 's';
+    confetti.style.animationDelay = (Math.random() * 0.2) + 's';
+    container.appendChild(confetti);
+
+    setTimeout(() => confetti.remove(), 2200);
   }
 }
 
-// ============================================================
-// RESULTS SCREEN
-// ============================================================
-function showResults() {
-  clearInterval(state.timer);
-  const elapsed = Math.round((Date.now() - state.startTime) / 1000);
-  const minutes = Math.floor(elapsed / 60);
-  const seconds = elapsed % 60;
-  const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+// Results Calculation
+function renderResultsScreen() {
+  clearInterval(gameState.timerInterval);
 
-  const pct = Math.round((state.score / TOTAL_QUESTIONS) * 100);
+  const totalTimeSeconds = Math.max(1, Math.round((Date.now() - gameState.quizStartTime) / 1000));
+  const minutes = Math.floor(totalTimeSeconds / 60);
+  const seconds = totalTimeSeconds % 60;
+  const timeString = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+
+  const percentage = Math.round((gameState.score / TOTAL_QUESTIONS_COUNT) * 100);
+
   let medal = '🥉';
-  let category = 'Participante';
-  let categoryColor = '#cd7f32';
-  if (pct >= 90) { medal = '🏆'; category = '¡Experto Total!'; categoryColor = '#ffd700'; }
-  else if (pct >= 75) { medal = '🥇'; category = '¡Excelente!'; categoryColor = '#ffd700'; }
-  else if (pct >= 60) { medal = '🥈'; category = '¡Muy Bien!'; categoryColor = '#c0c0c0'; }
-  else if (pct >= 40) { medal = '🥉'; category = 'Bien hecho'; categoryColor = '#cd7f32'; }
-  else { medal = '📚'; category = '¡Sigue Estudiando!'; categoryColor = '#888'; }
+  let rankTitle = '¡Gran Esfuerzo!';
+  if (percentage >= 90) {
+    medal = '🏆';
+    rankTitle = '¡Gran Maestro de la Cultura!';
+  } else if (percentage >= 75) {
+    medal = '🥇';
+    rankTitle = '¡Excelente Desempeño!';
+  } else if (percentage >= 60) {
+    medal = '🥈';
+    rankTitle = '¡Muy Buen Nivel!';
+  } else if (percentage >= 40) {
+    medal = '🥉';
+    rankTitle = '¡Buen Participante!';
+  } else {
+    medal = '📚';
+    rankTitle = '¡A Seguir Practicando!';
+  }
 
-  document.getElementById('quiz-screen').classList.add('hidden');
-  const resultsEl = document.getElementById('results-screen');
-  resultsEl.classList.remove('hidden');
+  // Update DOM elements
+  document.getElementById('intro-view-section').classList.add('hidden');
+  document.getElementById('quiz-view-section').classList.add('hidden');
+  const resultsView = document.getElementById('results-view-section');
+  resultsView.classList.remove('hidden');
 
-  document.getElementById('result-medal').textContent = medal;
-  document.getElementById('result-score').textContent = `${state.score}`;
-  document.getElementById('result-percentage').textContent = `${pct}%`;
-  document.getElementById('result-category').textContent = category;
-  document.getElementById('result-category').style.color = categoryColor;
-  document.getElementById('result-time').textContent = `⏱️ Tiempo total: ${timeStr}`;
+  document.getElementById('final-medal-icon').textContent = medal;
+  document.getElementById('final-rank-name').textContent = rankTitle;
+  document.getElementById('final-time-text').textContent = `⏱️ Tiempo total empleado: ${timeString}`;
+  document.getElementById('final-score-counter').textContent = gameState.score;
+  document.getElementById('final-max-score').textContent = `de ${TOTAL_QUESTIONS_COUNT} (${percentage}%)`;
 
-  // Animate score counter
-  animateCounter('result-score-counter', 0, state.score, 1200);
+  const correctCount = gameState.answersRecord.filter(a => a.isCorrect).length;
+  const wrongCount = gameState.answersRecord.filter(a => !a.isCorrect && a.reason !== 'timeout').length;
+  const timeoutCount = gameState.answersRecord.filter(a => a.reason === 'timeout').length;
 
-  // Correct / Wrong / Skipped
-  const correct = state.answers.filter(a => a.correct).length;
-  const wrong = state.answers.filter(a => !a.correct && a.selected !== null).length;
-  const skipped = state.answers.filter(a => a.selected === null).length;
-  document.getElementById('stat-correct').textContent = correct;
-  document.getElementById('stat-wrong').textContent = wrong;
-  document.getElementById('stat-skipped').textContent = skipped;
+  document.getElementById('stat-metric-correct').textContent = correctCount;
+  document.getElementById('stat-metric-wrong').textContent = wrongCount;
+  document.getElementById('stat-metric-timeout').textContent = timeoutCount;
 
-  // Trigger fireworks if good score
-  if (pct >= 60) {
-    triggerFireworks();
+  // Fireworks if high score
+  if (percentage >= 60) {
+    triggerConfettiParticles();
+    setTimeout(triggerConfettiParticles, 600);
+    setTimeout(triggerConfettiParticles, 1200);
   }
 }
 
-function animateCounter(id, from, to, duration) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const step = (to - from) / (duration / 16);
-  let current = from;
-  const interval = setInterval(() => {
-    current += step;
-    if (current >= to) { current = to; clearInterval(interval); }
-    el.textContent = Math.round(current);
-  }, 16);
+// Navigation & Screen Switcher
+function showSection(sectionId) {
+  ['intro-view-section', 'quiz-view-section', 'results-view-section'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+  const target = document.getElementById(sectionId);
+  if (target) target.classList.remove('hidden');
 }
 
-function triggerFireworks() {
-  const container = document.getElementById('confetti-container');
-  const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#c77dff', '#ff9a3c'];
-  function burst() {
-    for (let i = 0; i < 60; i++) {
-      const piece = document.createElement('div');
-      piece.className = 'confetti-piece';
-      piece.style.left = Math.random() * 100 + '%';
-      piece.style.top = Math.random() * 40 + '%';
-      piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-      piece.style.animationDuration = (Math.random() * 1.5 + 0.5) + 's';
-      piece.style.width = piece.style.height = (Math.random() * 12 + 5) + 'px';
-      container.appendChild(piece);
-      setTimeout(() => piece.remove(), 2000);
+function launchQuiz() {
+  initAudio();
+  gameState.questions = prepareQuizData();
+  gameState.currentIndex = 0;
+  gameState.score = 0;
+  gameState.answersRecord = [];
+  gameState.quizStartTime = Date.now();
+
+  showSection('quiz-view-section');
+  displayCurrentQuestion();
+}
+
+function showToastNotification(text) {
+  const toast = document.getElementById('toast-notification');
+  if (!toast) return;
+  toast.textContent = text;
+  toast.classList.add('show-toast');
+  setTimeout(() => toast.classList.remove('show-toast'), 2500);
+}
+
+function copyResultsToClipboard() {
+  const percentage = Math.round((gameState.score / TOTAL_QUESTIONS_COUNT) * 100);
+  const text = `🌸 Concurso Día de la Primavera 2026 - Torneo Aura\n🏆 Mi Puntuación: ${gameState.score}/${TOTAL_QUESTIONS_COUNT} (${percentage}%)\n¿Te animas a superarme?`;
+  navigator.clipboard.writeText(text).then(() => {
+    showToastNotification('✅ ¡Resultado copiado al portapapeles!');
+  }).catch(() => {
+    showToastNotification('Resultado: ' + text);
+  });
+}
+
+// Keyboard navigation (1-4 or A-D)
+document.addEventListener('keydown', (e) => {
+  const quizSection = document.getElementById('quiz-view-section');
+  if (!quizSection || quizSection.classList.contains('hidden') || gameState.hasAnswered) return;
+
+  const keyMap = {
+    '1': 0, 'a': 0, 'A': 0,
+    '2': 1, 'b': 1, 'B': 1,
+    '3': 2, 'c': 2, 'C': 2,
+    '4': 3, 'd': 3, 'D': 3
+  };
+
+  if (keyMap[e.key] !== undefined) {
+    const buttons = document.querySelectorAll('.option-card-btn');
+    const targetBtn = buttons[keyMap[e.key]];
+    if (targetBtn) {
+      targetBtn.click();
     }
   }
-  burst();
-  setTimeout(burst, 800);
-  setTimeout(burst, 1600);
+});
+
+// Sound Toggle
+function toggleSound() {
+  gameState.soundEnabled = !gameState.soundEnabled;
+  const btn = document.getElementById('sound-toggle-btn');
+  if (btn) {
+    btn.textContent = gameState.soundEnabled ? '🔊' : '🔇';
+    btn.title = gameState.soundEnabled ? 'Silenciar sonido' : 'Activar sonido';
+  }
 }
 
-// ============================================================
-// SCREENS
-// ============================================================
-function showScreen(id) {
-  ['intro-screen', 'quiz-screen', 'results-screen'].forEach(s => {
-    document.getElementById(s).classList.add('hidden');
-  });
-  document.getElementById(id).classList.remove('hidden');
-}
-
-// ============================================================
-// INIT
-// ============================================================
-function startQuiz() {
-  state.questions = prepareQuestions();
-  state.currentIndex = 0;
-  state.score = 0;
-  state.answers = [];
-  state.startTime = Date.now();
-
-  showScreen('quiz-screen');
-  renderQuestion();
-}
-
-function restartQuiz() {
-  startQuiz();
-}
-
+// Initialization on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('start-btn').addEventListener('click', startQuiz);
-  document.getElementById('restart-btn').addEventListener('click', restartQuiz);
+  const startBtn = document.getElementById('start-quiz-cta-btn');
+  if (startBtn) startBtn.addEventListener('click', launchQuiz);
+
+  const restartBtn = document.getElementById('restart-quiz-btn');
+  if (restartBtn) restartBtn.addEventListener('click', launchQuiz);
+
+  const shareBtn = document.getElementById('share-results-btn');
+  if (shareBtn) shareBtn.addEventListener('click', copyResultsToClipboard);
+
+  const soundBtn = document.getElementById('sound-toggle-btn');
+  if (soundBtn) soundBtn.addEventListener('click', toggleSound);
 });
