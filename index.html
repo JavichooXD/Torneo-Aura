@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz – Concurso Día de la Primavera 2026</title>
+  <meta name="description" content="Cuestionario de Cultura General – Concurso Día de la Primavera 2026. 50 preguntas, tiempo límite, orden aleatorio." />
+  <meta property="og:title" content="Quiz – Concurso Día de la Primavera 2026" />
+  <meta property="og:description" content="¡Pon a prueba tu cultura general con 50 preguntas!" />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Favicon emoji -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>" />
+</head>
+<body>
+
+  <!-- ─── FLOATING ORBS ──────────────────────── -->
+  <div class="orb orb-1" aria-hidden="true"></div>
+  <div class="orb orb-2" aria-hidden="true"></div>
+  <div class="orb orb-3" aria-hidden="true"></div>
+
+  <!-- ─── CONFETTI CONTAINER ────────────────── -->
+  <div id="confetti-container" aria-hidden="true"></div>
+
+  <main class="app-wrapper">
+
+    <!-- ====================================================
+         INTRO SCREEN
+         ==================================================== -->
+    <section id="intro-screen" class="card" role="main">
+      <div class="intro-badge">🌸 &nbsp;Torneo Aura · 2026</div>
+      <span class="intro-icon" aria-hidden="true">🧠</span>
+
+      <h1 class="intro-title">Concurso<br/>Día de la Primavera</h1>
+      <p class="intro-subtitle">¿Cuánto sabes de cultura general? ¡Demuéstralo!</p>
+
+      <div class="intro-stats">
+        <div class="intro-stat">
+          <div class="stat-value">50</div>
+          <div class="stat-label">Preguntas</div>
+        </div>
+        <div class="intro-stat">
+          <div class="stat-value">30s</div>
+          <div class="stat-label">Por pregunta</div>
+        </div>
+        <div class="intro-stat">
+          <div class="stat-value">4</div>
+          <div class="stat-label">Opciones</div>
+        </div>
+        <div class="intro-stat">
+          <div class="stat-value">🎲</div>
+          <div class="stat-label">Orden aleatorio</div>
+        </div>
+      </div>
+
+      <div class="intro-rules">
+        <h3>📋 Cómo jugar</h3>
+        <ul>
+          <li>Tienes <strong>30 segundos</strong> para responder cada pregunta.</li>
+          <li>Selecciona una de las <strong>4 opciones</strong> de respuesta.</li>
+          <li>Las preguntas aparecen en <strong>orden aleatorio</strong>.</li>
+          <li>Si el tiempo se agota, la pregunta se marca como incorrecta.</li>
+          <li>Al final verás tu puntuación y estadísticas.</li>
+        </ul>
+      </div>
+
+      <button id="start-btn" class="btn-primary">
+        <span>🚀</span> ¡Comenzar Quiz!
+      </button>
+    </section>
+
+    <!-- ====================================================
+         QUIZ SCREEN
+         ==================================================== -->
+    <section id="quiz-screen" class="card hidden">
+
+      <!-- Header -->
+      <header class="quiz-header">
+        <div class="quiz-brand">
+          <span class="quiz-brand-title">🌸 Día de la Primavera 2026</span>
+          <span class="quiz-brand-sub">Cuestionario de Cultura General</span>
+        </div>
+        <div id="score-display" class="score-chip" aria-live="polite">⭐ 0</div>
+      </header>
+
+      <!-- Progress -->
+      <div class="progress-container">
+        <div class="progress-info">
+          <span id="progress-text">Pregunta 1 de 50</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0">
+          <div id="progress-bar" class="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Question area -->
+      <div class="question-area">
+        <!-- Timer -->
+        <div id="timer-container" aria-label="Tiempo restante">
+          <svg viewBox="0 0 80 80" aria-hidden="true">
+            <circle class="timer-track" cx="40" cy="40" r="36"/>
+            <circle id="timer-ring" cx="40" cy="40" r="36"
+              style="stroke-dasharray:226.19; stroke-dashoffset:0;"/>
+          </svg>
+          <div class="timer-center">
+            <span id="timer-value">30</span>
+            <span class="timer-label">seg</span>
+          </div>
+        </div>
+
+        <!-- Question number + text -->
+        <div class="question-meta">
+          <span id="question-number" class="question-num-badge">#1</span>
+        </div>
+        <p id="question-text" aria-live="polite"></p>
+      </div>
+
+      <!-- Options -->
+      <div id="options-container" class="options-container" role="list"></div>
+
+      <!-- Feedback -->
+      <p id="feedback-message" class="feedback-message" aria-live="assertive" role="alert"></p>
+
+    </section>
+
+    <!-- ====================================================
+         RESULTS SCREEN
+         ==================================================== -->
+    <section id="results-screen" class="card hidden">
+
+      <div class="results-header">
+        <span id="result-medal" class="result-medal" aria-label="Medalla"></span>
+        <h2 class="result-title">¡Quiz Completado!</h2>
+        <p id="result-category" class="result-category"></p>
+        <p id="result-time" class="result-time"></p>
+      </div>
+
+      <!-- Big score -->
+      <div class="result-score-big">
+        <div class="score-circle">
+          <div class="score-circle-inner">
+            <span id="result-score" class="score-number"></span>
+            <span class="score-total">de 50</span>
+          </div>
+        </div>
+        <span id="result-percentage" class="score-percentage"></span>
+      </div>
+
+      <!-- Stats -->
+      <div class="result-stats">
+        <div class="result-stat-item stat-correct">
+          <span id="stat-correct" class="stat-num">0</span>
+          <span class="stat-lbl">✅ Correctas</span>
+        </div>
+        <div class="result-stat-item stat-wrong">
+          <span id="stat-wrong" class="stat-num">0</span>
+          <span class="stat-lbl">❌ Incorrectas</span>
+        </div>
+        <div class="result-stat-item stat-skipped">
+          <span id="stat-skipped" class="stat-num">0</span>
+          <span class="stat-lbl">⏰ Sin tiempo</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="results-actions">
+        <button id="restart-btn" class="btn-primary">
+          <span>🔄</span> Jugar de nuevo
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="quiz.js"></script>
+</body>
+</html>
